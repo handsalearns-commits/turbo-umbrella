@@ -1,0 +1,3651 @@
+[file content begin]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UniTrack - Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- Excel/SheetJS library for import/export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- JSZip for QR code zip download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --bg-color: #f9fafb;
+            --card-color: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        .dark-mode {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --danger-color: #f87171;
+            --warning-color: #fbbf24;
+            --info-color: #60a5fa;
+            --bg-color: #111827;
+            --card-color: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --border-color: #374151;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            padding-top: max(20px, var(--safe-area-top));
+            padding-bottom: max(20px, var(--safe-area-bottom));
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-logo i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        .login-logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .login-form {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .demo-accounts {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .demo-accounts h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .demo-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            background: var(--border-color);
+        }
+
+        .demo-btn:active {
+            transform: scale(0.98);
+        }
+
+        .demo-btn i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+
+        /* Main App Container */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 16px;
+        }
+
+        /* Header Styles - Mobile Optimized */
+        .header {
+            position: sticky;
+            top: 0;
+            background-color: var(--card-color);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            height: 56px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo i {
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-badge {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 3px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .role-badge.student {
+            background: linear-gradient(135deg, var(--secondary-color), #0d9e6d);
+        }
+
+        .role-badge.advisor {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+        }
+
+        .theme-toggle, .logout-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Bottom Navigation - Mobile Optimized */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+            padding-bottom: max(8px, var(--safe-area-bottom));
+            height: 64px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            padding: 8px 12px;
+            border-radius: 8px;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item span {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card h1 {
+            font-size: 20px;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-card p {
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            padding: 16px;
+            border-radius: var(--radius);
+            background-color: var(--card-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Action Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 12px;
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 2px solid var(--border-color);
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-primary);
+            min-height: 80px;
+        }
+
+        .action-btn:active {
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+        }
+
+        .action-btn i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .action-btn span {
+            font-weight: 600;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* Session Card */
+        .session-card {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .session-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background-color: var(--secondary-color);
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .session-badge {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .timer {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--secondary-color);
+            text-align: center;
+            margin: 12px 0;
+        }
+
+        .session-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:active {
+            background-color: var(--text-secondary);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:active {
+            background-color: #dc2626;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 16px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            min-width: 500px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: var(--primary-color);
+            font-weight: 600;
+            position: sticky;
+            left: 0;
+        }
+
+        .attendance-badge {
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .present {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--secondary-color);
+        }
+
+        .absent {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        /* Account Management */
+        .account-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .account-item {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .account-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .account-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .account-info h4 {
+            font-size: 15px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .account-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .account-role {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: var(--border-color);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .account-role.professor {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary-color);
+        }
+
+        .account-role.student {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .account-role.advisor {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .account-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .account-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* QR Code Display Styles */
+        .qr-display-container {
+            text-align: center;
+            padding: 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: var(--radius);
+            color: white;
+            margin: 20px 0;
+        }
+
+        .qr-display-container canvas {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 0 auto;
+            display: block;
+            max-width: 280px;
+        }
+
+        .student-qr-info {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .student-qr-info h3 {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .student-qr-info p {
+            margin: 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .student-qr-info strong {
+            color: var(--text-primary);
+        }
+
+        /* Scanner Interface */
+        .scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .scanner-view {
+            width: 100%;
+            max-width: 300px;
+            height: 300px;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .scanning-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 12px;
+        }
+
+        .scanning-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .scanner-feedback {
+            text-align: center;
+            padding: 16px;
+        }
+
+        .scanner-feedback.success {
+            color: var(--secondary-color);
+        }
+
+        .scanner-feedback.error {
+            color: var(--danger-color);
+        }
+
+        /* QR Code Management Grid */
+        .qr-code-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .qr-code-card {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .qr-code-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code-card canvas {
+            margin: 0 auto;
+            display: block;
+            max-width: 120px;
+            max-height: 120px;
+        }
+
+        .qr-code-card h4 {
+            margin: 12px 0 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+        }
+
+        .qr-code-card p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 4px 0;
+        }
+
+        .qr-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+
+        .qr-card-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .qr-card-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Import/Export Section */
+        .import-export-section {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 16px 0;
+            border: 2px dashed var(--border-color);
+            text-align: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin: 16px 0;
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-label {
+            display: block;
+            padding: 20px;
+            background: var(--bg-color);
+            border: 2px dashed var(--primary-color);
+            border-radius: 8px;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-label:hover {
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        /* Control Buttons */
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--card-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 16px;
+            left: 16px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .toast {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            animation: slideIn 0.3s forwards;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        .toast.success {
+            border-left-color: var(--secondary-color);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger-color);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .toast.info {
+            border-left-color: var(--info-color);
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.success i {
+            color: var(--secondary-color);
+        }
+
+        .toast.error i {
+            color: var(--danger-color);
+        }
+
+        .toast.warning i {
+            color: var(--warning-color);
+        }
+
+        .toast.info i {
+            color: var(--info-color);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin: 16px 0;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        /* Hide elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 320px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .stats-grid, .action-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-btn {
+                min-height: 70px;
+            }
+            
+            .logo span {
+                font-size: 16px;
+            }
+            
+            .control-btn {
+                min-width: 100%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 768px;
+                margin: 0 auto;
+            }
+            
+            .bottom-nav {
+                max-width: 768px;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: var(--radius) var(--radius) 0 0;
+                border: 1px solid var(--border-color);
+                border-bottom: none;
+                width: calc(100% - 32px);
+            }
+            
+            .qr-code-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
+
+        /* Role-specific colors */
+        .student-color {
+            color: var(--secondary-color) !important;
+        }
+
+        .professor-color {
+            color: var(--primary-color) !important;
+        }
+
+        .advisor-color {
+            color: var(--warning-color) !important;
+        }
+
+        /* Page header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 20px;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .quick-stat {
+            background: var(--card-color);
+            padding: 16px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .quick-stat .number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .quick-stat .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-logo">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h1>UniTrack</h1>
+        </div>
+        
+        <div class="login-form">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email" autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+            </div>
+            
+            <button class="login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </div>
+        
+        <div class="demo-accounts">
+            <h3>Demo Accounts (Click to Login)</h3>
+            <button class="demo-btn" data-email="professor@university.edu" data-password="prof123">
+                <i class="fas fa-user-tie"></i> Professor Account
+            </button>
+            <button class="demo-btn" data-email="student@university.edu" data-password="stu123">
+                <i class="fas fa-user-graduate"></i> Student Account
+            </button>
+            <button class="demo-btn" data-email="advisor@university.edu" data-password="adv123">
+                <i class="fas fa-user-cog"></i> Advisor Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>UniTrack</span>
+            </div>
+            <div class="header-right">
+                <div class="role-badge" id="roleBadge">Professor</div>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <div class="user-avatar" id="userAvatar">JD</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" id="mainContent">
+            <!-- Dashboard Pages (Different for each role) -->
+            <div id="dashboardPage">
+                <!-- Content will be dynamically loaded based on role -->
+            </div>
+
+            <!-- Attendance Page -->
+            <div id="attendancePage" class="hidden">
+                <!-- Content will be dynamically loaded based on role -->
+            </div>
+
+            <!-- QR Code Page (For Students) -->
+            <div id="qrCodePage" class="hidden">
+                <!-- Content will be dynamically loaded -->
+            </div>
+
+            <!-- Account Management Page (For Advisors) -->
+            <div id="accountsPage" class="hidden">
+                <!-- Content will be dynamically loaded -->
+            </div>
+
+            <!-- QR Management Page (For Advisors) -->
+            <div id="qrManagementPage" class="hidden">
+                <!-- Content will be dynamically loaded -->
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profilePage" class="hidden">
+                <!-- Content will be dynamically loaded -->
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (Dynamic based on role) -->
+        <nav class="bottom-nav" id="bottomNav">
+            <!-- Navigation items will be dynamically generated -->
+        </nav>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal-overlay hidden" id="qrCodeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Student QR Code</h2>
+                <button class="close-modal" id="closeQRModal">&times;</button>
+            </div>
+            <div id="qrModalContent">
+                <!-- QR code will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div class="modal-overlay hidden" id="addAccountModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add New Student</h2>
+                <button class="close-modal" id="closeAccountModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Student Code/ID *</label>
+                <input type="text" class="form-input" id="studentCode" placeholder="e.g., 2520110001" required>
+            </div>
+            <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" class="form-input" id="accountName" placeholder="Enter full name" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" class="form-input" id="accountEmail" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+                <label>Major/Department *</label>
+                <input type="text" class="form-input" id="accountMajor" placeholder="Enter major/department" required>
+            </div>
+            <div class="form-group">
+                <label>Year *</label>
+                <select class="form-input" id="accountYear" required>
+                    <option value="1">Year 1</option>
+                    <option value="2" selected>Year 2</option>
+                    <option value="3">Year 3</option>
+                    <option value="4">Year 4</option>
+                    <option value="5">Year 5</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Initial Password *</label>
+                <input type="password" class="form-input" id="accountPassword" placeholder="Set initial password" required>
+            </div>
+            <button class="btn btn-primary" id="confirmAddAccount" style="width: 100%;">
+                <i class="fas fa-plus"></i> Add Student
+            </button>
+        </div>
+    </div>
+
+    <!-- Import Excel Modal -->
+    <div class="modal-overlay hidden" id="importExcelModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Import Students from Excel</h2>
+                <button class="close-modal" id="closeImportModal">&times;</button>
+            </div>
+            <div class="import-export-section">
+                <div class="file-input-wrapper">
+                    <input type="file" class="file-input" id="excelFileInput" accept=".xlsx,.xls,.csv">
+                    <label for="excelFileInput" class="file-label">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 8px;"></i><br>
+                        Click to upload Excel file
+                        <div style="font-size: 12px; margin-top: 4px; color: var(--text-secondary);">
+                            Supports .xlsx, .xls, .csv
+                        </div>
+                    </label>
+                </div>
+                <div style="text-align: left; margin-top: 20px; font-size: 14px;">
+                    <strong>Required Columns:</strong>
+                    <ul style="margin: 8px 0 16px 20px; color: var(--text-secondary);">
+                        <li>Student Code (Unique ID)</li>
+                        <li>Full Name</li>
+                        <li>Email</li>
+                        <li>Major/Department</li>
+                        <li>Year (Optional)</li>
+                    </ul>
+                    <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; font-size: 13px;">
+                        <strong>Sample Format:</strong><br>
+                        Student Code, Full Name, Email, Major, Year<br>
+                        2520110001, John Doe, john@uni.edu, Computer Science, 2
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn btn-secondary" id="downloadTemplateBtn" style="flex: 1;">
+                    <i class="fas fa-download"></i> Download Template
+                </button>
+                <button class="btn btn-primary" id="importDataBtn" style="flex: 1;">
+                    <i class="fas fa-upload"></i> Import Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Manager Modal -->
+    <div class="modal-overlay hidden" id="sessionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Start New Session</h2>
+                <button class="close-modal" id="closeSessionModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Select Subject</label>
+                <select class="form-input" id="subjectSelect">
+                    <option value="">Choose a subject</option>
+                    <option value="anatomy">Medicine and Surgery - Anatomy</option>
+                    <option value="physiology">Medicine and Surgery - Physiology</option>
+                    <option value="biochemistry">Medicine and Surgery - Biochemistry</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Room/Location</label>
+                <input type="text" class="form-input" id="roomInput" placeholder="e.g., Lecture Hall A">
+            </div>
+            <div class="form-group">
+                <label>Session Type</label>
+                <select class="form-input" id="sessionType">
+                    <option value="lecture">Lecture</option>
+                    <option value="lab">Lab Session</option>
+                    <option value="tutorial">Tutorial</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="autoScannerCheck" checked>
+                    Enable Auto Scanner
+                </label>
+            </div>
+            <button class="btn btn-primary" id="confirmStartSession" style="width: 100%;">
+                <i class="fas fa-play"></i> Start Session
+            </button>
+        </div>
+    </div>
+
+    <!-- Scanner Interface -->
+    <div class="scanner-container hidden" id="scannerInterface">
+        <div class="scanner-view">
+            <div class="scanning-guide">
+                <div class="scanning-line"></div>
+            </div>
+        </div>
+        <div class="scanner-feedback" id="scannerFeedback">
+            <h3>Ready to scan</h3>
+            <p>Position QR code within the frame</p>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 20px; width: 100%; max-width: 300px;">
+            <button class="btn btn-danger" id="closeScannerBtn" style="flex: 1;">
+                <i class="fas fa-times"></i> Close
+            </button>
+            <button class="btn btn-secondary" id="toggleFlashBtn" style="flex: 1;">
+                <i class="fas fa-lightbulb"></i> Flash
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // ==================== ROLE-BASED ACCESS CONTROL ====================
+        const ROLES = {
+            STUDENT: 'student',
+            PROFESSOR: 'professor',
+            ADVISOR: 'advisor'
+        };
+
+        const PERMISSIONS = {
+            [ROLES.STUDENT]: {
+                dashboard: true,
+                attendance: true,
+                qrCode: true,  // Student can view their own QR code
+                profile: true,
+                pages: ['dashboard', 'attendance', 'qrCode', 'profile']
+            },
+            [ROLES.PROFESSOR]: {
+                dashboard: true,
+                attendance: true,
+                sessions: true,
+                scanner: true,
+                profile: true,
+                pages: ['dashboard', 'attendance', 'profile']
+            },
+            [ROLES.ADVISOR]: {
+                dashboard: true,
+                accounts: true,
+                qrManagement: true,
+                attendance: true,
+                profile: true,
+                pages: ['dashboard', 'accounts', 'qrManagement', 'attendance', 'profile']
+            }
+        };
+
+        // ==================== DEMO ACCOUNTS ====================
+        const demoAccounts = {
+            'professor@university.edu': {
+                password: 'prof123',
+                name: 'Dr. John Doe',
+                role: ROLES.PROFESSOR,
+                department: 'Medicine and Surgery',
+                since: 'January 2020',
+                avatar: 'JD'
+            },
+            'student@university.edu': {
+                password: 'stu123',
+                name: 'Michael Chen',
+                role: ROLES.STUDENT,
+                department: 'Computer Science',
+                since: 'September 2023',
+                studentCode: '2520110006',
+                year: '2',
+                major: 'Computer Science',
+                avatar: 'MC'
+            },
+            'advisor@university.edu': {
+                password: 'adv123',
+                name: 'Sarah Johnson',
+                role: ROLES.ADVISOR,
+                department: 'Student Affairs',
+                since: 'March 2019',
+                avatar: 'SJ'
+            }
+        };
+
+        // ==================== SAMPLE DATA ====================
+        const sampleStudents = [
+            { 
+                id: 1, 
+                studentCode: '2520110001',
+                name: 'Jenviave Tamer Botrous Samuel', 
+                email: '2520110001@nasu.edu.eg', 
+                role: ROLES.STUDENT,
+                department: 'Medicine',
+                major: 'Medicine and Surgery',
+                year: '2',
+                avatar: 'JT',
+                password: 'student123',
+                createdAt: '2023-09-01',
+                qrCode: null
+            },
+            { 
+                id: 2, 
+                studentCode: '2520110002',
+                name: 'Mikhael Samir Fekry Boshra', 
+                email: '2520110002@nasu.edu.eg', 
+                role: ROLES.STUDENT,
+                department: 'Medicine',
+                major: 'Medicine and Surgery',
+                year: '2',
+                avatar: 'MS',
+                password: 'student123',
+                createdAt: '2023-09-01',
+                qrCode: null
+            },
+            { 
+                id: 3, 
+                studentCode: '2520110003',
+                name: 'Adham Tito Almitwalli Abdelhamed', 
+                email: '2520110003@nasu.edu.eg', 
+                role: ROLES.STUDENT,
+                department: 'Medicine',
+                major: 'Medicine and Surgery',
+                year: '2',
+                avatar: 'AT',
+                password: 'student123',
+                createdAt: '2023-09-01',
+                qrCode: null
+            }
+        ];
+
+        const sampleProfessors = [
+            {
+                id: 4,
+                name: 'Dr. John Doe',
+                email: 'john.doe@university.edu',
+                role: ROLES.PROFESSOR,
+                department: 'Medicine',
+                avatar: 'JD',
+                since: 'January 2020'
+            }
+        ];
+
+        const sampleAdvisors = [
+            {
+                id: 5,
+                name: 'Sarah Johnson',
+                email: 'sarah.j@university.edu',
+                role: ROLES.ADVISOR,
+                department: 'Student Affairs',
+                avatar: 'SJ',
+                since: 'March 2019'
+            }
+        ];
+
+        // ==================== APPLICATION STATE ====================
+        const state = {
+            isLoggedIn: false,
+            currentUser: null,
+            currentPage: 'dashboard',
+            darkMode: false,
+            
+            // Data storage
+            students: [...sampleStudents],
+            professors: [...sampleProfessors],
+            advisors: [...sampleAdvisors],
+            
+            // Session state
+            activeSession: null,
+            sessionTimer: null,
+            sessionTime: 0,
+            scannedStudents: new Set(),
+            
+            // UI state
+            selectedStudents: new Set()
+        };
+
+        // ==================== DOM ELEMENTS ====================
+        const elements = {
+            // Login Screen
+            loginScreen: document.getElementById('loginScreen'),
+            appContainer: document.getElementById('appContainer'),
+            loginEmail: document.getElementById('loginEmail'),
+            loginPassword: document.getElementById('loginPassword'),
+            loginBtn: document.getElementById('loginBtn'),
+            demoBtns: document.querySelectorAll('.demo-btn'),
+            
+            // Header
+            roleBadge: document.getElementById('roleBadge'),
+            themeToggle: document.getElementById('themeToggle'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            userAvatar: document.getElementById('userAvatar'),
+            
+            // Main Content Areas
+            mainContent: document.getElementById('mainContent'),
+            bottomNav: document.getElementById('bottomNav'),
+            
+            // Pages
+            dashboardPage: document.getElementById('dashboardPage'),
+            attendancePage: document.getElementById('attendancePage'),
+            qrCodePage: document.getElementById('qrCodePage'),
+            accountsPage: document.getElementById('accountsPage'),
+            qrManagementPage: document.getElementById('qrManagementPage'),
+            profilePage: document.getElementById('profilePage'),
+            
+            // Modals
+            qrCodeModal: document.getElementById('qrCodeModal'),
+            closeQRModal: document.getElementById('closeQRModal'),
+            addAccountModal: document.getElementById('addAccountModal'),
+            closeAccountModal: document.getElementById('closeAccountModal'),
+            importExcelModal: document.getElementById('importExcelModal'),
+            closeImportModal: document.getElementById('closeImportModal'),
+            sessionModal: document.getElementById('sessionModal'),
+            closeSessionModal: document.getElementById('closeSessionModal'),
+            scannerInterface: document.getElementById('scannerInterface'),
+            
+            // Form elements
+            confirmAddAccount: document.getElementById('confirmAddAccount'),
+            excelFileInput: document.getElementById('excelFileInput'),
+            downloadTemplateBtn: document.getElementById('downloadTemplateBtn'),
+            importDataBtn: document.getElementById('importDataBtn'),
+            confirmStartSession: document.getElementById('confirmStartSession'),
+            closeScannerBtn: document.getElementById('closeScannerBtn'),
+            toggleFlashBtn: document.getElementById('toggleFlashBtn'),
+            scannerFeedback: document.getElementById('scannerFeedback'),
+            
+            // Toast & Loading
+            toastContainer: document.getElementById('toastContainer'),
+            loadingOverlay: document.getElementById('loadingOverlay')
+        };
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            // Check if user is already logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                state.currentUser = JSON.parse(savedUser);
+                state.isLoggedIn = true;
+                showApp();
+            }
+            
+            // Load saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                enableDarkMode();
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            // Login
+            elements.loginBtn.addEventListener('click', handleLogin);
+            elements.loginPassword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            // Demo accounts
+            elements.demoBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const email = btn.dataset.email;
+                    const password = btn.dataset.password;
+                    elements.loginEmail.value = email;
+                    elements.loginPassword.value = password;
+                    handleLogin();
+                });
+            });
+            
+            // Theme toggle
+            elements.themeToggle.addEventListener('click', toggleTheme);
+            
+            // Logout
+            elements.logoutBtn.addEventListener('click', handleLogout);
+            
+            // Modal close buttons
+            elements.closeQRModal?.addEventListener('click', () => hideModal('qrCodeModal'));
+            elements.closeAccountModal?.addEventListener('click', () => hideModal('addAccountModal'));
+            elements.closeImportModal?.addEventListener('click', () => hideModal('importExcelModal'));
+            elements.closeSessionModal?.addEventListener('click', () => hideModal('sessionModal'));
+            
+            // Form submissions
+            elements.confirmAddAccount?.addEventListener('click', addStudentAccount);
+            elements.confirmStartSession?.addEventListener('click', startSession);
+            
+            // Import/Export
+            elements.downloadTemplateBtn?.addEventListener('click', downloadTemplate);
+            elements.importDataBtn?.addEventListener('click', importExcelData);
+            
+            // Scanner
+            elements.closeScannerBtn?.addEventListener('click', closeScanner);
+            elements.toggleFlashBtn?.addEventListener('click', toggleFlash);
+            
+            // Excel file input
+            elements.excelFileInput?.addEventListener('change', handleFileSelect);
+            
+            // Simulate QR scanning
+            setInterval(simulateQRScan, 3000);
+        }
+
+        // ==================== AUTHENTICATION ====================
+        function handleLogin() {
+            const email = elements.loginEmail.value.trim();
+            const password = elements.loginPassword.value;
+            
+            if (!email || !password) {
+                showToast('Please enter email and password', 'error');
+                return;
+            }
+            
+            // Check demo accounts
+            if (demoAccounts[email] && demoAccounts[email].password === password) {
+                state.currentUser = {
+                    email: email,
+                    ...demoAccounts[email]
+                };
+                state.isLoggedIn = true;
+                
+                // Save to localStorage
+                localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+                
+                showApp();
+                showToast(`Welcome back, ${state.currentUser.name}!`, 'success');
+            } else {
+                showToast('Invalid email or password', 'error');
+            }
+        }
+
+        function handleLogout() {
+            showLoading();
+            setTimeout(() => {
+                hideLoading();
+                
+                // Clear user data
+                state.isLoggedIn = false;
+                state.currentUser = null;
+                localStorage.removeItem('currentUser');
+                
+                // Show login screen
+                elements.loginScreen.style.display = 'flex';
+                elements.appContainer.style.display = 'none';
+                
+                // Clear login form
+                elements.loginEmail.value = '';
+                elements.loginPassword.value = '';
+                
+                showToast('Logged out successfully', 'success');
+            }, 800);
+        }
+
+        // ==================== ROLE-BASED UI ====================
+        function showApp() {
+            elements.loginScreen.style.display = 'none';
+            elements.appContainer.style.display = 'block';
+            
+            // Update UI based on role
+            updateUIForRole();
+            setupNavigation();
+            navigateTo('dashboard');
+        }
+
+        function updateUIForRole() {
+            if (!state.currentUser) return;
+            
+            // Update header
+            const roleText = state.currentUser.role.charAt(0).toUpperCase() + state.currentUser.role.slice(1);
+            elements.roleBadge.textContent = roleText;
+            elements.roleBadge.className = `role-badge ${state.currentUser.role}`;
+            
+            // Update avatar
+            const initials = state.currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            elements.userAvatar.textContent = initials.substring(0, 2);
+            
+            // Update welcome message in dashboard
+            loadDashboardContent();
+        }
+
+        function setupNavigation() {
+            if (!state.currentUser) return;
+            
+            const permissions = PERMISSIONS[state.currentUser.role];
+            const navItems = [];
+            
+            // Define navigation items for each role
+            const navConfig = {
+                dashboard: { icon: 'fa-home', label: 'Dashboard' },
+                attendance: { icon: 'fa-clipboard-check', label: 'Attendance' },
+                qrCode: { icon: 'fa-qrcode', label: 'My QR Code' },
+                accounts: { icon: 'fa-users-cog', label: 'Students' },
+                qrManagement: { icon: 'fa-qrcode', label: 'QR Management' },
+                profile: { icon: 'fa-user', label: 'Profile' }
+            };
+            
+            // Add navigation items based on permissions
+            permissions.pages.forEach(page => {
+                if (navConfig[page]) {
+                    navItems.push({
+                        page: page,
+                        icon: navConfig[page].icon,
+                        label: navConfig[page].label
+                    });
+                }
+            });
+            
+            // Generate navigation HTML
+            elements.bottomNav.innerHTML = navItems.map(item => `
+                <a href="#" class="nav-item" data-page="${item.page}">
+                    <i class="fas ${item.icon}"></i>
+                    <span>${item.label}</span>
+                </a>
+            `).join('');
+            
+            // Add event listeners to nav items
+            elements.bottomNav.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = item.getAttribute('data-page');
+                    navigateTo(page);
+                });
+            });
+            
+            // Set first item as active
+            if (navItems.length > 0) {
+                elements.bottomNav.querySelector('.nav-item').classList.add('active');
+            }
+        }
+
+        function navigateTo(page) {
+            if (!state.currentUser) return;
+            
+            // Check permission
+            if (!PERMISSIONS[state.currentUser.role].pages.includes(page)) {
+                showToast('Access denied', 'error');
+                return;
+            }
+            
+            state.currentPage = page;
+            
+            // Hide all pages
+            const pages = ['dashboardPage', 'attendancePage', 'qrCodePage', 
+                          'accountsPage', 'qrManagementPage', 'profilePage'];
+            pages.forEach(pageId => {
+                document.getElementById(pageId)?.classList.add('hidden');
+            });
+            
+            // Show current page
+            document.getElementById(`${page}Page`)?.classList.remove('hidden');
+            
+            // Update nav items
+            elements.bottomNav.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === page) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Load page-specific content
+            switch(page) {
+                case 'dashboard':
+                    loadDashboardContent();
+                    break;
+                case 'attendance':
+                    loadAttendanceContent();
+                    break;
+                case 'qrCode':
+                    loadQRCodeContent();
+                    break;
+                case 'accounts':
+                    loadAccountsContent();
+                    break;
+                case 'qrManagement':
+                    loadQRManagementContent();
+                    break;
+                case 'profile':
+                    loadProfileContent();
+                    break;
+            }
+        }
+
+        // ==================== PAGE CONTENT LOADERS ====================
+        function loadDashboardContent() {
+            if (!state.currentUser) return;
+            
+            let content = '';
+            
+            switch(state.currentUser.role) {
+                case ROLES.STUDENT:
+                    content = `
+                        <div class="card welcome-card">
+                            <h1>Welcome, ${state.currentUser.name}</h1>
+                            <p>View your attendance and access your QR code</p>
+                        </div>
+                        
+                        <div class="quick-stats">
+                            <div class="quick-stat">
+                                <div class="number">85%</div>
+                                <div class="label">Attendance Rate</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="number">42</div>
+                                <div class="label">Classes Attended</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="number">5</div>
+                                <div class="label">Today's Classes</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 style="margin-bottom: 16px;">Today's Schedule</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-color); border-radius: 8px;">
+                                    <div>
+                                        <strong>Anatomy</strong>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Lecture Hall A</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div>09:00 - 10:30</div>
+                                        <div class="present" style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Present</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-color); border-radius: 8px;">
+                                    <div>
+                                        <strong>Physiology</strong>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Lab 3</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div>11:00 - 12:30</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Upcoming</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button class="control-btn" id="showMyQRBtn">
+                                <i class="fas fa-qrcode"></i>
+                                Show My QR Code
+                            </button>
+                            <button class="control-btn" id="viewAttendanceBtn">
+                                <i class="fas fa-chart-bar"></i>
+                                View Attendance
+                            </button>
+                        </div>
+                    `;
+                    break;
+                    
+                case ROLES.PROFESSOR:
+                    content = `
+                        <div class="card welcome-card">
+                            <h1>Welcome, ${state.currentUser.name}</h1>
+                            <p>Manage sessions and track student attendance</p>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <i class="fas fa-calendar-day"></i>
+                                <div class="value">3</div>
+                                <div class="label">Today's Sessions</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-users"></i>
+                                <div class="value">142</div>
+                                <div class="label">Total Students</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-chart-line"></i>
+                                <div class="value">94%</div>
+                                <div class="label">Attendance Rate</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-book"></i>
+                                <div class="value">5</div>
+                                <div class="label">Active Subjects</div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-grid">
+                            <button class="action-btn" id="startSessionBtn">
+                                <i class="fas fa-play-circle"></i>
+                                <span>Start New Session</span>
+                            </button>
+                            <button class="action-btn" id="openScannerBtn">
+                                <i class="fas fa-qrcode"></i>
+                                <span>Open Scanner</span>
+                            </button>
+                            <button class="action-btn" id="viewReportsBtn">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>View Reports</span>
+                            </button>
+                            <button class="action-btn" id="manageCoursesBtn">
+                                <i class="fas fa-cogs"></i>
+                                <span>Manage Courses</span>
+                            </button>
+                        </div>
+                        
+                        <div class="session-card" id="activeSessionCard" style="display: none;">
+                            <div class="session-header">
+                                <h3>Active Session</h3>
+                                <div class="session-badge">LIVE</div>
+                            </div>
+                            <p><strong>Subject:</strong> <span id="sessionSubject">Medicine and Surgery - Anatomy</span></p>
+                            <p><strong>Room:</strong> <span id="sessionRoom">Lecture Hall A</span></p>
+                            <p><strong>Started:</strong> <span id="sessionStartTime">09:30 AM</span></p>
+                            <div class="timer" id="sessionTimer">00:00:00</div>
+                            <div class="session-controls">
+                                <button class="btn btn-secondary" id="pauseSessionBtn">
+                                    <i class="fas fa-pause"></i> Pause
+                                </button>
+                                <button class="btn btn-danger" id="endSessionBtn">
+                                    <i class="fas fa-stop"></i> End Session
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <h2 style="margin: 20px 0 12px 0;">Recent Attendance</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Subject</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentAttendance">
+                                    <tr>
+                                        <td>Jenviave Tamer</td>
+                                        <td>Anatomy</td>
+                                        <td>09:35 AM</td>
+                                        <td><span class="attendance-badge present">Present</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mikhael Samir</td>
+                                        <td>Anatomy</td>
+                                        <td>09:36 AM</td>
+                                        <td><span class="attendance-badge present">Present</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Adham Tito</td>
+                                        <td>Anatomy</td>
+                                        <td>09:37 AM</td>
+                                        <td><span class="attendance-badge present">Present</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    break;
+                    
+                case ROLES.ADVISOR:
+                    content = `
+                        <div class="card welcome-card">
+                            <h1>Welcome, ${state.currentUser.name}</h1>
+                            <p>Manage student accounts and generate QR codes</p>
+                        </div>
+                        
+                        <div class="quick-stats">
+                            <div class="quick-stat">
+                                <div class="number">${state.students.length}</div>
+                                <div class="label">Total Students</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="number">${state.students.filter(s => s.qrCode).length}</div>
+                                <div class="label">QR Codes Generated</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="number">5</div>
+                                <div class="label">Departments</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="number">92%</div>
+                                <div class="label">Avg. Attendance</div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button class="control-btn" id="addStudentBtn">
+                                <i class="fas fa-user-plus"></i>
+                                Add Student
+                            </button>
+                            <button class="control-btn" id="importExcelBtn">
+                                <i class="fas fa-file-import"></i>
+                                Import Excel
+                            </button>
+                            <button class="control-btn" id="generateQRCodesBtn">
+                                <i class="fas fa-qrcode"></i>
+                                Generate QR Codes
+                            </button>
+                            <button class="control-btn" id="viewStudentsBtn">
+                                <i class="fas fa-users"></i>
+                                View Students
+                            </button>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 style="margin-bottom: 16px;">Recent Activities</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-color); border-radius: 8px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-color); display: flex; align-items: center; justify-content: center; color: white;">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600;">New student added</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">John Doe - 2520110001</div>
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">2 hours ago</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-color); border-radius: 8px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--secondary-color); display: flex; align-items: center; justify-content: center; color: white;">
+                                        <i class="fas fa-qrcode"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600;">QR codes generated</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Batch of 15 students</div>
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Yesterday</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            elements.dashboardPage.innerHTML = content;
+            attachDashboardEventListeners();
+        }
+
+        function loadQRCodeContent() {
+            if (state.currentUser.role !== ROLES.STUDENT) return;
+            
+            // Generate QR data for student
+            const qrData = generateStudentQRData(state.currentUser);
+            
+            elements.qrCodePage.innerHTML = `
+                <div class="page-header">
+                    <h2>My QR Code</h2>
+                    <button class="btn btn-primary" id="downloadMyQRBtn">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+                
+                <div class="qr-display-container">
+                    <div id="studentQRCode"></div>
+                    <p style="margin-top: 16px; font-size: 14px;">Show this QR code for attendance marking</p>
+                </div>
+                
+                <div class="student-qr-info">
+                    <h3>Student Information</h3>
+                    <p><strong>Student Code:</strong> ${state.currentUser.studentCode || 'Not assigned'}</p>
+                    <p><strong>Name:</strong> ${state.currentUser.name}</p>
+                    <p><strong>Email:</strong> ${state.currentUser.email}</p>
+                    <p><strong>Department:</strong> ${state.currentUser.department}</p>
+                    <p><strong>Year:</strong> ${state.currentUser.year || 'Not specified'}</p>
+                    <p><strong>QR Last Updated:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 12px;">How to Use</h3>
+                    <ol style="margin-left: 20px; color: var(--text-secondary);">
+                        <li style="margin-bottom: 8px;">Present this QR code to your professor during class</li>
+                        <li style="margin-bottom: 8px;">Ensure the QR code is clearly visible</li>
+                        <li style="margin-bottom: 8px;">Do not share your QR code with others</li>
+                        <li>Report lost QR codes to your advisor immediately</li>
+                    </ol>
+                </div>
+            `;
+            
+            // Generate QR code
+            generateQRCode(qrData, document.getElementById('studentQRCode'), 280);
+            
+            // Add event listener for download button
+            document.getElementById('downloadMyQRBtn')?.addEventListener('click', () => {
+                downloadQRCode(qrData, `${state.currentUser.studentCode}_${state.currentUser.name.replace(/\s+/g, '_')}`);
+            });
+        }
+
+        function loadAccountsContent() {
+            if (state.currentUser.role !== ROLES.ADVISOR) return;
+            
+            elements.accountsPage.innerHTML = `
+                <div class="page-header">
+                    <h2>Student Management</h2>
+                    <button class="btn btn-primary" id="addNewStudentBtn">
+                        <i class="fas fa-user-plus"></i> Add Student
+                    </button>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="control-btn" id="importStudentsBtn">
+                        <i class="fas fa-file-import"></i> Import Excel
+                    </button>
+                    <button class="control-btn" id="exportStudentsBtn">
+                        <i class="fas fa-file-export"></i> Export Excel
+                    </button>
+                    <button class="control-btn" id="generateAllQRCodesBtn">
+                        <i class="fas fa-qrcode"></i> Generate All QR Codes
+                    </button>
+                    <button class="control-btn" id="bulkDeleteBtn">
+                        <i class="fas fa-trash"></i> Bulk Delete
+                    </button>
+                </div>
+                
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="studentSearch" placeholder="Search students by name, code, or email...">
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllStudents"></th>
+                                <th>Student Code</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Major</th>
+                                <th>Year</th>
+                                <th>QR Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            ${state.students.map(student => `
+                                <tr data-id="${student.id}">
+                                    <td><input type="checkbox" class="student-checkbox" value="${student.id}"></td>
+                                    <td>${student.studentCode}</td>
+                                    <td>${student.name}</td>
+                                    <td>${student.email}</td>
+                                    <td>${student.major}</td>
+                                    <td>Year ${student.year}</td>
+                                    <td>
+                                        ${student.qrCode ? 
+                                            '<span class="attendance-badge present">Generated</span>' : 
+                                            '<span class="attendance-badge absent">Pending</span>'
+                                        }
+                                    </td>
+                                    <td>
+                                        <button class="account-action-btn generate-student-qr-btn" data-id="${student.id}" title="Generate QR">
+                                            <i class="fas fa-qrcode"></i>
+                                        </button>
+                                        <button class="account-action-btn edit-student-btn" data-id="${student.id}" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="account-action-btn delete-student-btn" data-id="${student.id}" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                ${state.students.length === 0 ? `
+                    <div class="empty-state">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>No Students Found</h3>
+                        <p>Add students manually or import from Excel</p>
+                        <button class="btn btn-primary" id="addFirstStudentBtn" style="margin-top: 16px;">
+                            <i class="fas fa-user-plus"></i> Add First Student
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+            
+            attachAccountsEventListeners();
+        }
+
+        function loadQRManagementContent() {
+            if (state.currentUser.role !== ROLES.ADVISOR) return;
+            
+            const studentsWithQR = state.students.filter(s => s.qrCode);
+            const studentsWithoutQR = state.students.filter(s => !s.qrCode);
+            
+            elements.qrManagementPage.innerHTML = `
+                <div class="page-header">
+                    <h2>QR Code Management</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" id="printAllQRCodesBtn">
+                            <i class="fas fa-print"></i> Print All
+                        </button>
+                        <button class="btn btn-primary" id="downloadAllQRCodesBtn">
+                            <i class="fas fa-download"></i> Download All
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="quick-stats">
+                    <div class="quick-stat">
+                        <div class="number">${studentsWithQR.length}</div>
+                        <div class="label">QR Codes Generated</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="number">${studentsWithoutQR.length}</div>
+                        <div class="label">Pending Generation</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="number">${state.students.length}</div>
+                        <div class="label">Total Students</div>
+                    </div>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="control-btn" id="generateMissingQRCodesBtn">
+                        <i class="fas fa-qrcode"></i> Generate Missing QR Codes
+                    </button>
+                    <button class="control-btn" id="regenerateAllQRCodesBtn">
+                        <i class="fas fa-sync"></i> Regenerate All
+                    </button>
+                    <button class="control-btn" id="exportQRListBtn">
+                        <i class="fas fa-file-excel"></i> Export QR List
+                    </button>
+                </div>
+                
+                ${studentsWithoutQR.length > 0 ? `
+                    <div class="card" style="border-color: var(--warning-color);">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                            <div style="color: var(--warning-color); font-size: 20px;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0;">${studentsWithoutQR.length} Students Need QR Codes</h3>
+                                <p style="color: var(--text-secondary); margin: 4px 0 0 0;">Generate QR codes for these students</p>
+                            </div>
+                            <button class="btn btn-primary" id="generatePendingQRCodesBtn">
+                                <i class="fas fa-qrcode"></i> Generate Now
+                            </button>
+                        </div>
+                        <div class="table-container" style="max-height: 200px; overflow-y: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student Code</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Major</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${studentsWithoutQR.slice(0, 5).map(student => `
+                                        <tr>
+                                            <td>${student.studentCode}</td>
+                                            <td>${student.name}</td>
+                                            <td>${student.email}</td>
+                                            <td>${student.major}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <h3 style="margin: 24px 0 16px 0;">Generated QR Codes</h3>
+                ${studentsWithQR.length > 0 ? `
+                    <div class="qr-code-grid" id="qrCodeGrid">
+                        ${studentsWithQR.slice(0, 12).map(student => {
+                            const qrData = generateStudentQRData(student);
+                            const containerId = `qr-${student.id}`;
+                            setTimeout(() => generateQRCode(qrData, document.getElementById(containerId), 120), 100);
+                            return `
+                                <div class="qr-code-card">
+                                    <div id="${containerId}" style="width: 120px; height: 120px; margin: 0 auto;"></div>
+                                    <h4>${student.name.split(' ')[0]}</h4>
+                                    <p>${student.studentCode}</p>
+                                    <p style="font-size: 11px; color: var(--text-secondary);">${student.major}</p>
+                                    <div class="qr-card-actions">
+                                        <button class="qr-card-btn view-qr-btn" data-id="${student.id}" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="qr-card-btn download-qr-btn" data-id="${student.id}" title="Download">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="qr-card-btn print-qr-btn" data-id="${student.id}" title="Print">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : `
+                    <div class="empty-state">
+                        <i class="fas fa-qrcode"></i>
+                        <h3>No QR Codes Generated</h3>
+                        <p>Generate QR codes for students first</p>
+                    </div>
+                `}
+            `;
+            
+            attachQRManagementEventListeners();
+        }
+
+        function loadAttendanceContent() {
+            let content = '';
+            
+            switch(state.currentUser.role) {
+                case ROLES.STUDENT:
+                    content = `
+                        <div class="page-header">
+                            <h2>My Attendance</h2>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" id="exportAttendanceBtn">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--secondary-color);">85%</div>
+                                    <div style="color: var(--text-secondary);">Overall Attendance Rate</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 14px; color: var(--text-secondary);">Present: 42 classes</div>
+                                    <div style="font-size: 14px; color: var(--text-secondary);">Absent: 7 classes</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Subject</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Professor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2024-01-15</td>
+                                        <td>Anatomy</td>
+                                        <td>09:00 AM</td>
+                                        <td><span class="attendance-badge present">Present</span></td>
+                                        <td>Dr. John Doe</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-14</td>
+                                        <td>Physiology</td>
+                                        <td>11:00 AM</td>
+                                        <td><span class="attendance-badge present">Present</span></td>
+                                        <td>Dr. Sarah Smith</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-13</td>
+                                        <td>Biochemistry</td>
+                                        <td>02:00 PM</td>
+                                        <td><span class="attendance-badge absent">Absent</span></td>
+                                        <td>Dr. Robert Kim</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    break;
+                    
+                case ROLES.PROFESSOR:
+                    content = `
+                        <div class="page-header">
+                            <h2>Attendance Records</h2>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" id="filterAttendanceBtn">
+                                    <i class="fas fa-filter"></i> Filter
+                                </button>
+                                <button class="btn btn-primary" id="exportAttendanceReportBtn">
+                                    <i class="fas fa-file-export"></i> Export Report
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Subject</label>
+                                    <select class="form-input" style="width: 200px;">
+                                        <option>All Subjects</option>
+                                        <option>Anatomy</option>
+                                        <option>Physiology</option>
+                                        <option>Biochemistry</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Date Range</label>
+                                    <select class="form-input" style="width: 200px;">
+                                        <option>Last 7 days</option>
+                                        <option>Last 30 days</option>
+                                        <option>This Month</option>
+                                        <option>Custom Range</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Subject</th>
+                                        <th>Total Students</th>
+                                        <th>Present</th>
+                                        <th>Absent</th>
+                                        <th>Attendance Rate</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2024-01-15</td>
+                                        <td>Anatomy</td>
+                                        <td>45</td>
+                                        <td>42</td>
+                                        <td>3</td>
+                                        <td><strong>93%</strong></td>
+                                        <td>
+                                            <button class="account-action-btn">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-14</td>
+                                        <td>Physiology</td>
+                                        <td>45</td>
+                                        <td>40</td>
+                                        <td>5</td>
+                                        <td><strong>89%</strong></td>
+                                        <td>
+                                            <button class="account-action-btn">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    break;
+                    
+                case ROLES.ADVISOR:
+                    content = `
+                        <div class="page-header">
+                            <h2>Attendance Overview</h2>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" id="generateAttendanceReportBtn">
+                                    <i class="fas fa-chart-bar"></i> Generate Report
+                                </button>
+                                <button class="btn btn-primary" id="exportAllAttendanceBtn">
+                                    <i class="fas fa-file-excel"></i> Export All Data
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <i class="fas fa-chart-line"></i>
+                                <div class="value">92%</div>
+                                <div class="label">Overall Attendance</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-user-graduate"></i>
+                                <div class="value">${state.students.length}</div>
+                                <div class="label">Total Students</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-calendar-check"></i>
+                                <div class="value">1,240</div>
+                                <div class="label">Total Sessions</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-trophy"></i>
+                                <div class="value">95%</div>
+                                <div class="label">Top Department</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 style="margin-bottom: 16px;">Department-wise Attendance</h3>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Department</th>
+                                            <th>Total Students</th>
+                                            <th>Avg. Attendance</th>
+                                            <th>Top Performer</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Medicine</td>
+                                            <td>85</td>
+                                            <td>95%</td>
+                                            <td>Jenviave Tamer (100%)</td>
+                                            <td><span class="attendance-badge present">Excellent</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Computer Science</td>
+                                            <td>120</td>
+                                            <td>90%</td>
+                                            <td>Michael Chen (98%)</td>
+                                            <td><span class="attendance-badge present">Good</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Engineering</td>
+                                            <td>95</td>
+                                            <td>88%</td>
+                                            <td>Alex Johnson (96%)</td>
+                                            <td><span class="attendance-badge present">Good</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            elements.attendancePage.innerHTML = content;
+        }
+
+        function loadProfileContent() {
+            if (!state.currentUser) return;
+            
+            elements.profilePage.innerHTML = `
+                <div class="card" style="text-align: center; padding: 20px;">
+                    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 24px; margin: 0 auto 16px;">
+                        ${state.currentUser.avatar}
+                    </div>
+                    <h2 style="margin-bottom: 8px;">${state.currentUser.name}</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        ${state.currentUser.role.charAt(0).toUpperCase() + state.currentUser.role.slice(1)} • ${state.currentUser.department}
+                        ${state.currentUser.studentCode ? `• ${state.currentUser.studentCode}` : ''}
+                    </p>
+                    
+                    <div style="text-align: left; margin-top: 24px;">
+                        <h3 style="margin-bottom: 12px;">Account Information</h3>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <div class="form-input" style="background: var(--card-color);">${state.currentUser.email}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Department</label>
+                            <div class="form-input" style="background: var(--card-color);">${state.currentUser.department}</div>
+                        </div>
+                        ${state.currentUser.major ? `
+                            <div class="form-group">
+                                <label>Major</label>
+                                <div class="form-input" style="background: var(--card-color);">${state.currentUser.major}</div>
+                            </div>
+                        ` : ''}
+                        <div class="form-group">
+                            <label>Member Since</label>
+                            <div class="form-input" style="background: var(--card-color);">${state.currentUser.since}</div>
+                        </div>
+                        <button class="btn btn-secondary" style="width: 100%; margin-top: 16px;">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== EVENT LISTENERS ATTACHMENT ====================
+        function attachDashboardEventListeners() {
+            // Student dashboard
+            document.getElementById('showMyQRBtn')?.addEventListener('click', () => {
+                navigateTo('qrCode');
+            });
+            
+            // Professor dashboard
+            document.getElementById('startSessionBtn')?.addEventListener('click', () => {
+                showModal('sessionModal');
+            });
+            
+            document.getElementById('openScannerBtn')?.addEventListener('click', openScanner);
+            
+            // Advisor dashboard
+            document.getElementById('addStudentBtn')?.addEventListener('click', () => {
+                showModal('addAccountModal');
+            });
+            
+            document.getElementById('importExcelBtn')?.addEventListener('click', () => {
+                showModal('importExcelModal');
+            });
+            
+            document.getElementById('generateQRCodesBtn')?.addEventListener('click', () => {
+                navigateTo('qrManagement');
+            });
+            
+            document.getElementById('viewStudentsBtn')?.addEventListener('click', () => {
+                navigateTo('accounts');
+            });
+        }
+
+        function attachAccountsEventListeners() {
+            // Add student button
+            document.getElementById('addNewStudentBtn')?.addEventListener('click', () => {
+                showModal('addAccountModal');
+            });
+            
+            document.getElementById('addFirstStudentBtn')?.addEventListener('click', () => {
+                showModal('addAccountModal');
+            });
+            
+            // Import/Export buttons
+            document.getElementById('importStudentsBtn')?.addEventListener('click', () => {
+                showModal('importExcelModal');
+            });
+            
+            document.getElementById('exportStudentsBtn')?.addEventListener('click', exportStudentsToExcel);
+            
+            // QR code generation
+            document.getElementById('generateAllQRCodesBtn')?.addEventListener('click', generateAllStudentQRCodes);
+            
+            // Bulk operations
+            document.getElementById('bulkDeleteBtn')?.addEventListener('click', bulkDeleteStudents);
+            document.getElementById('selectAllStudents')?.addEventListener('change', toggleSelectAllStudents);
+            
+            // Search functionality
+            document.getElementById('studentSearch')?.addEventListener('input', filterStudents);
+            
+            // Student action buttons
+            document.querySelectorAll('.generate-student-qr-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const studentId = parseInt(e.target.closest('button').dataset.id);
+                    generateStudentQRById(studentId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-student-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const studentId = parseInt(e.target.closest('button').dataset.id);
+                    deleteStudent(studentId);
+                });
+            });
+        }
+
+        function attachQRManagementEventListeners() {
+            // Generate missing QR codes
+            document.getElementById('generateMissingQRCodesBtn')?.addEventListener('click', generateMissingQRCodes);
+            document.getElementById('generatePendingQRCodesBtn')?.addEventListener('click', generateMissingQRCodes);
+            
+            // Regenerate all
+            document.getElementById('regenerateAllQRCodesBtn')?.addEventListener('click', regenerateAllQRCodes);
+            
+            // Export
+            document.getElementById('exportQRListBtn')?.addEventListener('click', exportQRListToExcel);
+            
+            // Print/Download all
+            document.getElementById('printAllQRCodesBtn')?.addEventListener('click', printAllQRCodes);
+            document.getElementById('downloadAllQRCodesBtn')?.addEventListener('click', downloadAllQRCodesAsZip);
+            
+            // Individual QR actions
+            document.querySelectorAll('.view-qr-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const studentId = parseInt(e.target.closest('button').dataset.id);
+                    viewStudentQR(studentId);
+                });
+            });
+            
+            document.querySelectorAll('.download-qr-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const studentId = parseInt(e.target.closest('button').dataset.id);
+                    downloadStudentQR(studentId);
+                });
+            });
+        }
+
+        // ==================== QR CODE FUNCTIONS ====================
+        function generateStudentQRData(student) {
+            return JSON.stringify({
+                type: 'student_attendance',
+                version: '1.0',
+                studentId: student.id,
+                studentCode: student.studentCode,
+                name: student.name,
+                email: student.email,
+                major: student.major,
+                year: student.year,
+                timestamp: Date.now(),
+                securityHash: btoa(`${student.studentCode}-${Date.now()}`).substring(0, 16)
+            });
+        }
+
+        function generateQRCode(text, container, size = 200) {
+            if (!container) return;
+            
+            container.innerHTML = '';
+            QRCode.toCanvas(container, text, { 
+                width: size,
+                height: size,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) {
+                    console.error(error);
+                    showToast('Failed to generate QR code', 'error');
+                }
+            });
+        }
+
+        function generateStudentQRById(studentId) {
+            const student = state.students.find(s => s.id === studentId);
+            if (!student) {
+                showToast('Student not found', 'error');
+                return;
+            }
+            
+            const qrData = generateStudentQRData(student);
+            student.qrCode = qrData;
+            showToast(`QR code generated for ${student.name}`, 'success');
+            
+            // Reload accounts page if open
+            if (state.currentPage === 'accounts') {
+                loadAccountsContent();
+            }
+        }
+
+        function generateAllStudentQRCodes() {
+            let generated = 0;
+            state.students.forEach(student => {
+                if (!student.qrCode) {
+                    student.qrCode = generateStudentQRData(student);
+                    generated++;
+                }
+            });
+            
+            showToast(`Generated ${generated} QR codes`, 'success');
+            loadAccountsContent();
+        }
+
+        function generateMissingQRCodes() {
+            const missing = state.students.filter(s => !s.qrCode);
+            if (missing.length === 0) {
+                showToast('All QR codes are already generated', 'info');
+                return;
+            }
+            
+            missing.forEach(student => {
+                student.qrCode = generateStudentQRData(student);
+            });
+            
+            showToast(`Generated ${missing.length} missing QR codes`, 'success');
+            loadQRManagementContent();
+        }
+
+        function regenerateAllQRCodes() {
+            state.students.forEach(student => {
+                student.qrCode = generateStudentQRData(student);
+            });
+            
+            showToast(`Regenerated all ${state.students.length} QR codes`, 'success');
+            loadQRManagementContent();
+        }
+
+        function viewStudentQR(studentId) {
+            const student = state.students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const qrData = student.qrCode || generateStudentQRData(student);
+            
+            elements.qrModalContent.innerHTML = `
+                <div style="text-align: center;">
+                    <div id="modalQRCode" style="margin: 0 auto; width: 250px; height: 250px;"></div>
+                    <div style="margin-top: 20px; text-align: left; background: var(--bg-color); padding: 16px; border-radius: 8px;">
+                        <p><strong>Student Code:</strong> ${student.studentCode}</p>
+                        <p><strong>Name:</strong> ${student.name}</p>
+                        <p><strong>Major:</strong> ${student.major}</p>
+                        <p><strong>Year:</strong> ${student.year}</p>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button class="btn btn-secondary" id="printThisQRBtn" style="flex: 1;">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-primary" id="downloadThisQRBtn" style="flex: 1;">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            generateQRCode(qrData, document.getElementById('modalQRCode'), 250);
+            
+            // Add event listeners to modal buttons
+            document.getElementById('printThisQRBtn')?.addEventListener('click', () => {
+                printQRCode(qrData, student);
+            });
+            
+            document.getElementById('downloadThisQRBtn')?.addEventListener('click', () => {
+                downloadQRCode(qrData, `${student.studentCode}_${student.name.replace(/\s+/g, '_')}`);
+            });
+            
+            showModal('qrCodeModal');
+        }
+
+        function downloadStudentQR(studentId) {
+            const student = state.students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const qrData = student.qrCode || generateStudentQRData(student);
+            downloadQRCode(qrData, `${student.studentCode}_${student.name.replace(/\s+/g, '_')}`);
+        }
+
+        function downloadQRCode(qrData, filename) {
+            const container = document.createElement('div');
+            generateQRCode(qrData, container, 300);
+            
+            setTimeout(() => {
+                const canvas = container.querySelector('canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = `${filename}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    showToast('QR code downloaded', 'success');
+                }
+            }, 100);
+        }
+
+        function downloadAllQRCodesAsZip() {
+            const studentsWithQR = state.students.filter(s => s.qrCode);
+            if (studentsWithQR.length === 0) {
+                showToast('No QR codes to download', 'warning');
+                return;
+            }
+            
+            showToast(`Preparing ${studentsWithQR.length} QR codes for download...`, 'info');
+            
+            // Create a zip file with all QR codes
+            const zip = new JSZip();
+            const promises = [];
+            
+            studentsWithQR.forEach(student => {
+                const container = document.createElement('div');
+                generateQRCode(student.qrCode, container, 300);
+                
+                setTimeout(() => {
+                    const canvas = container.querySelector('canvas');
+                    if (canvas) {
+                        const dataUrl = canvas.toDataURL('image/png').split(',')[1];
+                        const filename = `QR_${student.studentCode}_${student.name.replace(/\s+/g, '_')}.png`;
+                        zip.file(filename, dataUrl, {base64: true});
+                    }
+                }, 100);
+            });
+            
+            setTimeout(() => {
+                zip.generateAsync({type: "blob"})
+                    .then(function(content) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(content);
+                        link.download = `Student_QR_Codes_${new Date().toISOString().split('T')[0]}.zip`;
+                        link.click();
+                        showToast(`${studentsWithQR.length} QR codes downloaded`, 'success');
+                    });
+            }, 1000);
+        }
+
+        function printQRCode(qrData, student) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Print QR Code - ${student.name}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                        .qr-container { margin: 20px auto; }
+                        .student-info { margin-top: 20px; text-align: left; max-width: 300px; margin-left: auto; margin-right: auto; }
+                        .student-info p { margin: 8px 0; }
+                        @media print {
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Student QR Code</h2>
+                    <div class="qr-container">
+                        <img src="${generateQRDataURL(qrData, 300)}" style="width: 300px; height: 300px;">
+                    </div>
+                    <div class="student-info">
+                        <p><strong>Student Code:</strong> ${student.studentCode}</p>
+                        <p><strong>Name:</strong> ${student.name}</p>
+                        <p><strong>Major:</strong> ${student.major}</p>
+                        <p><strong>Year:</strong> ${student.year}</p>
+                        <p><strong>Printed:</strong> ${new Date().toLocaleString()}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => printWindow.print(), 500);
+        }
+
+        function printAllQRCodes() {
+            const studentsWithQR = state.students.filter(s => s.qrCode);
+            if (studentsWithQR.length === 0) {
+                showToast('No QR codes to print', 'warning');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            let printContent = `
+                <html>
+                <head>
+                    <title>Student QR Codes - ${new Date().toLocaleDateString()}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        .qr-grid { 
+                            display: grid; 
+                            grid-template-columns: repeat(3, 1fr); 
+                            gap: 20px;
+                            margin-top: 20px;
+                        }
+                        .qr-item { 
+                            text-align: center; 
+                            border: 1px solid #ddd; 
+                            padding: 15px;
+                            page-break-inside: avoid;
+                        }
+                        h2 { text-align: center; margin-bottom: 30px; }
+                        @media print {
+                            .qr-item { border: 1px solid #000; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Student QR Codes - ${new Date().toLocaleDateString()}</h2>
+                    <div class="qr-grid">
+            `;
+            
+            studentsWithQR.forEach(student => {
+                printContent += `
+                    <div class="qr-item">
+                        <img src="${generateQRDataURL(student.qrCode, 150)}" style="width: 150px; height: 150px;">
+                        <p style="margin: 10px 0 5px; font-weight: bold;">${student.studentCode}</p>
+                        <p style="font-size: 12px; margin: 0;">${student.name.split(' ')[0]} ${student.name.split(' ')[1] || ''}</p>
+                        <p style="font-size: 11px; color: #666; margin: 5px 0;">${student.major}</p>
+                        <p style="font-size: 10px; color: #999;">Year ${student.year}</p>
+                    </div>
+                `;
+            });
+            
+            printContent += `
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            setTimeout(() => printWindow.print(), 500);
+        }
+
+        function generateQRDataURL(qrData, size) {
+            const container = document.createElement('div');
+            generateQRCode(qrData, container, size);
+            const canvas = container.querySelector('canvas');
+            return canvas ? canvas.toDataURL('image/png') : '';
+        }
+
+        // ==================== STUDENT MANAGEMENT ====================
+        function addStudentAccount() {
+            const studentCode = document.getElementById('studentCode').value.trim();
+            const name = document.getElementById('accountName').value.trim();
+            const email = document.getElementById('accountEmail').value.trim();
+            const major = document.getElementById('accountMajor').value.trim();
+            const year = document.getElementById('accountYear').value;
+            const password = document.getElementById('accountPassword').value;
+            
+            // Validate
+            if (!studentCode || !name || !email || !major || !password) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            
+            // Check if student code already exists
+            if (state.students.some(s => s.studentCode === studentCode)) {
+                showToast('Student code already exists', 'error');
+                return;
+            }
+            
+            // Check if email already exists
+            if (state.students.some(s => s.email === email)) {
+                showToast('Email already exists', 'error');
+                return;
+            }
+            
+            // Create new student
+            const newStudent = {
+                id: Date.now(),
+                studentCode,
+                name,
+                email,
+                role: ROLES.STUDENT,
+                department: major,
+                major,
+                year,
+                avatar: name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2),
+                password,
+                createdAt: new Date().toISOString().split('T')[0],
+                qrCode: null
+            };
+            
+            state.students.push(newStudent);
+            hideModal('addAccountModal');
+            
+            // Clear form
+            document.getElementById('studentCode').value = '';
+            document.getElementById('accountName').value = '';
+            document.getElementById('accountEmail').value = '';
+            document.getElementById('accountMajor').value = '';
+            document.getElementById('accountPassword').value = '';
+            
+            showToast(`${name} added successfully!`, 'success');
+            
+            // Reload accounts page if open
+            if (state.currentPage === 'accounts') {
+                loadAccountsContent();
+            }
+        }
+
+        function deleteStudent(studentId) {
+            if (!confirm('Are you sure you want to delete this student?')) return;
+            
+            const student = state.students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            state.students = state.students.filter(s => s.id !== studentId);
+            showToast(`${student.name} deleted successfully`, 'success');
+            
+            // Reload accounts page if open
+            if (state.currentPage === 'accounts') {
+                loadAccountsContent();
+            }
+        }
+
+        function bulkDeleteStudents() {
+            const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                showToast('Please select students to delete', 'warning');
+                return;
+            }
+            
+            if (!confirm(`Delete ${selectedCheckboxes.length} selected students?`)) return;
+            
+            const idsToDelete = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+            state.students = state.students.filter(s => !idsToDelete.includes(s.id));
+            
+            showToast(`Deleted ${idsToDelete.length} students`, 'success');
+            loadAccountsContent();
+        }
+
+        function toggleSelectAllStudents(e) {
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = e.target.checked;
+            });
+        }
+
+        function filterStudents() {
+            const searchTerm = document.getElementById('studentSearch')?.value.toLowerCase() || '';
+            const rows = document.querySelectorAll('#studentsTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // ==================== EXCEL IMPORT/EXPORT ====================
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // Store imported data for confirmation
+                    state.importedData = jsonData;
+                    showToast(`Found ${jsonData.length} records`, 'success');
+                } catch (error) {
+                    showToast('Error reading Excel file', 'error');
+                    console.error(error);
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function importExcelData() {
+            if (!state.importedData || state.importedData.length === 0) {
+                showToast('No data to import', 'error');
+                return;
+            }
+            
+            let imported = 0;
+            let skipped = 0;
+            
+            state.importedData.forEach((row, index) => {
+                // Extract data
+                const studentCode = row['Student Code'] || row['Code'] || row['StudentID'] || 
+                                  row['Student ID'] || `IMPORT-${Date.now()}-${index}`;
+                const name = row['Full Name'] || row['Name'] || row['Student Name'] || 
+                           row['Student'] || 'Unknown Student';
+                const email = row['Email'] || row['Email Address'] || 
+                            `${studentCode}@university.edu`;
+                const major = row['Major'] || row['Department'] || row['Course'] || 
+                            row['Program'] || 'Unknown';
+                const year = row['Year'] || row['Level'] || row['Class'] || '2';
+                
+                // Check if student already exists
+                if (state.students.some(s => s.studentCode === studentCode)) {
+                    skipped++;
+                    return;
+                }
+                
+                // Add new student
+                state.students.push({
+                    id: Date.now() + index,
+                    studentCode: studentCode.toString(),
+                    name: name.toString(),
+                    email: email.toString(),
+                    role: ROLES.STUDENT,
+                    department: major.toString(),
+                    major: major.toString(),
+                    year: year.toString(),
+                    avatar: name.toString().split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2),
+                    password: 'student123',
+                    createdAt: new Date().toISOString().split('T')[0],
+                    qrCode: null
+                });
+                
+                imported++;
+            });
+            
+            hideModal('importExcelModal');
+            showToast(`Imported ${imported} students, skipped ${skipped} duplicates`, 'success');
+            
+            // Reload accounts page if open
+            if (state.currentPage === 'accounts') {
+                loadAccountsContent();
+            }
+        }
+
+        function exportStudentsToExcel() {
+            if (state.students.length === 0) {
+                showToast('No students to export', 'warning');
+                return;
+            }
+            
+            const data = state.students.map(student => ({
+                'Student Code': student.studentCode,
+                'Full Name': student.name,
+                'Email': student.email,
+                'Major': student.major,
+                'Year': student.year,
+                'Department': student.department,
+                'QR Generated': student.qrCode ? 'Yes' : 'No',
+                'Created Date': student.createdAt
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Students');
+            
+            XLSX.writeFile(wb, `Students_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast('Students exported successfully', 'success');
+        }
+
+        function exportQRListToExcel() {
+            const studentsWithQR = state.students.filter(s => s.qrCode);
+            if (studentsWithQR.length === 0) {
+                showToast('No QR codes to export', 'warning');
+                return;
+            }
+            
+            const data = studentsWithQR.map(student => {
+                const qrData = JSON.parse(student.qrCode);
+                return {
+                    'Student Code': student.studentCode,
+                    'Full Name': student.name,
+                    'Email': student.email,
+                    'Major': student.major,
+                    'Year': student.year,
+                    'QR Data': student.qrCode,
+                    'Security Hash': qrData.securityHash,
+                    'Generated Timestamp': new Date(qrData.timestamp).toLocaleString()
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'QR Codes');
+            
+            XLSX.writeFile(wb, `QR_Codes_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast('QR code list exported successfully', 'success');
+        }
+
+        function downloadTemplate() {
+            const templateData = [
+                {
+                    'Student Code': '2520110001',
+                    'Full Name': 'John Doe',
+                    'Email': 'john.doe@university.edu',
+                    'Major': 'Computer Science',
+                    'Year': '2'
+                },
+                {
+                    'Student Code': '2520110002',
+                    'Full Name': 'Jane Smith',
+                    'Email': 'jane.smith@university.edu',
+                    'Major': 'Medicine',
+                    'Year': '3'
+                }
+            ];
+            
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Template');
+            
+            XLSX.writeFile(wb, 'Student_Import_Template.xlsx');
+            showToast('Template downloaded', 'success');
+        }
+
+        // ==================== SESSION MANAGEMENT ====================
+        function startSession() {
+            const subject = document.getElementById('subjectSelect').value;
+            const room = document.getElementById('roomInput').value;
+            
+            if (!subject || !room) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            
+            hideModal('sessionModal');
+            
+            // Start session
+            state.activeSession = {
+                subject,
+                room,
+                startTime: new Date(),
+                students: new Set()
+            };
+            
+            state.sessionTime = 0;
+            
+            // Show active session card
+            const sessionCard = document.getElementById('activeSessionCard');
+            if (sessionCard) {
+                sessionCard.style.display = 'block';
+                sessionCard.querySelector('#sessionSubject').textContent = `Medicine and Surgery - ${subject.charAt(0).toUpperCase() + subject.slice(1)}`;
+                sessionCard.querySelector('#sessionRoom').textContent = room;
+                sessionCard.querySelector('#sessionStartTime').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                // Update timer every second
+                if (state.sessionTimer) clearInterval(state.sessionTimer);
+                state.sessionTimer = setInterval(updateSessionTimer, 1000);
+            }
+            
+            showToast('Session started successfully!', 'success');
+            
+            // Auto-open scanner if checked
+            if (document.getElementById('autoScannerCheck')?.checked) {
+                setTimeout(openScanner, 500);
+            }
+        }
+
+        function updateSessionTimer() {
+            state.sessionTime++;
+            const hours = Math.floor(state.sessionTime / 3600);
+            const minutes = Math.floor((state.sessionTime % 3600) / 60);
+            const seconds = state.sessionTime % 60;
+            
+            const timerElement = document.getElementById('sessionTimer');
+            if (timerElement) {
+                timerElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // ==================== SCANNER FUNCTIONS ====================
+        function openScanner() {
+            elements.scannerInterface.classList.remove('hidden');
+            state.scannedStudents.clear();
+            updateScannerFeedback('Ready to scan', 'Position QR code within the frame');
+        }
+
+        function closeScanner() {
+            elements.scannerInterface.classList.add('hidden');
+            if (state.activeSession) {
+                showToast(`Scanner closed. ${state.scannedStudents.size} students scanned.`, 'info');
+            }
+        }
+
+        function toggleFlash() {
+            const icon = elements.toggleFlashBtn.querySelector('i');
+            if (icon.classList.contains('fa-lightbulb')) {
+                icon.classList.replace('fa-lightbulb', 'fa-bolt');
+                showToast('Flash turned on', 'info');
+            } else {
+                icon.classList.replace('fa-bolt', 'fa-lightbulb');
+                showToast('Flash turned off', 'info');
+            }
+        }
+
+        function simulateQRScan() {
+            if (!elements.scannerInterface.classList.contains('hidden')) {
+                if (Math.random() > 0.7 && state.students.length > 0) {
+                    const student = state.students[Math.floor(Math.random() * state.students.length)];
+                    
+                    if (!state.scannedStudents.has(student.id)) {
+                        state.scannedStudents.add(student.id);
+                        updateScannerFeedback(
+                            'Scan Successful!',
+                            `${student.name.split(' ')[0]} marked present`,
+                            'success'
+                        );
+                        
+                        // Add to recent attendance if professor dashboard is open
+                        if (state.currentUser.role === ROLES.PROFESSOR) {
+                            addToRecentAttendance(student.name, 'Anatomy');
+                        }
+                        
+                        showToast(`${student.name.split(' ')[0]} attendance recorded`, 'success');
+                    } else {
+                        updateScannerFeedback(
+                            'Already Scanned',
+                            `${student.name.split(' ')[0]} already marked present`,
+                            'warning'
+                        );
+                    }
+                    
+                    // Reset feedback after 2 seconds
+                    setTimeout(() => {
+                        if (!elements.scannerInterface.classList.contains('hidden')) {
+                            updateScannerFeedback('Ready to scan', 'Position QR code within the frame');
+                        }
+                    }, 2000);
+                }
+            }
+        }
+
+        function updateScannerFeedback(title, message, type = '') {
+            elements.scannerFeedback.innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+            `;
+            elements.scannerFeedback.className = `scanner-feedback ${type}`;
+        }
+
+        function addToRecentAttendance(studentName, subject) {
+            const table = document.getElementById('recentAttendance');
+            if (!table) return;
+            
+            const newRow = `
+                <tr>
+                    <td>${studentName.split(' ')[0]} ${studentName.split(' ')[1] || ''}</td>
+                    <td>${subject}</td>
+                    <td>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td><span class="attendance-badge present">Present</span></td>
+                </tr>
+            `;
+            
+            table.innerHTML = newRow + table.innerHTML;
+            
+            // Keep only 5 rows
+            const rows = table.querySelectorAll('tr');
+            if (rows.length > 5) {
+                rows[5].remove();
+            }
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function showModal(modalId) {
+            document.getElementById(modalId)?.classList.remove('hidden');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId)?.classList.add('hidden');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || 'fa-info-circle'}"></i>
+                <div style="flex: 1;">
+                    <strong style="font-size: 14px;">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                    <p style="margin-top: 4px; font-size: 13px;">${message}</p>
+                </div>
+            `;
+            
+            elements.toastContainer.appendChild(toast);
+            
+            // Remove toast after 4 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s reverse forwards';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        function showLoading() {
+            elements.loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            elements.loadingOverlay.classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            if (state.darkMode) {
+                disableDarkMode();
+            } else {
+                enableDarkMode();
+            }
+        }
+
+        function enableDarkMode() {
+            document.body.classList.add('dark-mode');
+            elements.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            state.darkMode = true;
+            localStorage.setItem('theme', 'dark');
+        }
+
+        function disableDarkMode() {
+            document.body.classList.remove('dark-mode');
+            elements.themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            state.darkMode = false;
+            localStorage.setItem('theme', 'light');
+        }
+
+        // ==================== INITIALIZE APP ====================
+        window.addEventListener('DOMContentLoaded', init);
+        
+        // Prevent zoom on double-tap
+        document.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>
+[file content end]
